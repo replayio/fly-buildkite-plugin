@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+
+# TODO(dmiller): don't do this
+deno run --allow-env --allow-run "$(dirname "${BASH_SOURCE[0]}")/../index.ts"

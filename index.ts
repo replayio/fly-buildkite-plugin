@@ -1,28 +1,30 @@
-import * as log from "https://deno.land/std@0.144.0/log/mod.ts";
+// TODO(dmiller): add organization flag to config
+// TODO(dmiller): add app name to config
 
-function ensureEnv() {
-  if (Deno.env.get("FLY_API_TOKEN")) {
-    log.critical("FLY_API_TOKEN is not set");
-    Deno.exit(1);
-  }
-}
+import { configFromEnv } from "./config.ts";
+import { FlyProxy } from "./fly/proxy.ts";
 
-function setupFlyMachine() {
-  // create an application if it doesn't exist
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function setupFlyMachine(flyApiToken: string, organization: string) {
+  // start fly proxy
+  const flyProxy = new FlyProxy(flyApiToken, organization);
+
   // create a machine in that application
   // wait for machine to start
   // start buildkite on the machine with the appropriate agent tag set
+
+  // sleep for 60 seconds
+  await delay(60 * 1000);
 }
 
 function main() {
-  // ensure that FLY_API_TOKEN env variable is set
-  ensureEnv();
-
   // create config from BUILDKITE_PLUGIN_CONFIGURATION
+  const config = configFromEnv();
 
   // run `flyctl machines api-proxy` in background
 
-  setupFlyMachine();
+  setupFlyMachine(config.api_token, config.organization);
 
   // build pipeline
 }
