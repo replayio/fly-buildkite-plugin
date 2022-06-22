@@ -1,32 +1,78 @@
-// TODO(dmiller): add organization flag to config
-// TODO(dmiller): add app name to config
+import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
 
 import { configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function setupFlyMachine(flyApiToken: string, organization: string) {
+function createSecrets(
+  appName: string,
+  accessToken: string,
+  secrets: Record<string, string>
+) {
+  const stuff = Object.keys(secrets).map(async (key) => {
+    const value = secrets[key];
+    try {
+      const p = Deno.run({
+        cmd: [
+          "fly",
+          "--json",
+          "--access-token",
+          accessToken,
+          "secrets",
+          "set",
+          "--app",
+          appName,
+          `${key}=${value}`,
+        ],
+      });
+      await p.status();
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  return Promise.all(stuff);
+}
+
+async function setupFlyMachine(
+  flyApiToken: string,
+  organization: string,
+  applicationName: string,
+  image: string
+) {
+  const logger = getLogger();
   // start fly proxy
-  const flyProxy = new FlyProxy(flyApiToken, organization);
+  const flyProxy = new FlyProxy(
+    logger,
+    flyApiToken,
+    organization,
+    applicationName
+  );
 
   // create a machine in that application
-  // wait for machine to start
-  // start buildkite on the machine with the appropriate agent tag set
+  await flyProxy.startMachine("fly-agent-test", image, 1, 1024);
 
   // sleep for 60 seconds
   await delay(60 * 1000);
 }
 
-function main() {
+async function main() {
   // create config from BUILDKITE_PLUGIN_CONFIGURATION
   const config = configFromEnv();
 
-  // run `flyctl machines api-proxy` in background
+  const imageTag = "registry.fly.io/flybuildkite-test:deployment-1655936542";
 
-  setupFlyMachine(config.api_token, config.organization);
+  await createSecrets("buildkite-agents", config.api_token, config.secrets);
+
+  await setupFlyMachine(
+    config.api_token,
+    config.organization,
+    config.application,
+    imageTag
+  );
 
   // build pipeline
 }
 
-main();
+await main();
