@@ -92,7 +92,7 @@ export class FlyProxy {
   ) {
     await this.waitForFlyProxyToStart();
 
-    const name = `${namePrefix}-${Math.floor(Math.random() * 1000)}`;
+    const name = `${namePrefix}-${Math.floor(Math.random() * 10000)}`;
 
     const createMachinePayload = {
       name,
