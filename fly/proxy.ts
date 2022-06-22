@@ -157,6 +157,7 @@ export class FlyProxy {
           }
         );
         if (response.status === 200) {
+          this.logger.info(`Machine ${machineID} started`);
           return;
         }
       } catch (e) {
@@ -164,9 +165,5 @@ export class FlyProxy {
       }
       attempts++;
     }
-  }
-
-  public stop() {
-    // this.flyProxy.kill("SIGINT");
   }
 }
