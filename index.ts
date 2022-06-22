@@ -52,9 +52,6 @@ async function setupFlyMachine(
 
   // create a machine in that application
   await flyProxy.startMachine("fly-agent-test", image, 1, 1024);
-
-  // sleep for 60 seconds
-  await delay(60 * 1000);
 }
 
 async function main() {
