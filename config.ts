@@ -1,6 +1,5 @@
 export type Config = {
   api_token: string;
-  application: string;
   organization: string;
   image: string;
   command: string;
@@ -25,7 +24,6 @@ export function configFromEnv(): Config {
 
   const config: Config = {
     api_token: flyApiToken,
-    application: pluginConfig.application,
     organization: pluginConfig.organization,
     image: pluginConfig.image,
     command: pluginConfig.command,
