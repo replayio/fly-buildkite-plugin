@@ -50,8 +50,9 @@ async function setupFlyMachine(
     applicationName
   );
 
-  // create a machine in that application
-  const name = await flyProxy.startMachine("fly-agent-test", image, 1, 1024);
+  // TODO(dmiller): in the future this should use BUILDKITE_PIPELINE_NAME
+  const machineNamePrefix = "fly-agent-test";
+  const name = await flyProxy.startMachine(machineNamePrefix, image, 1, 1024);
 
   return name;
 }
