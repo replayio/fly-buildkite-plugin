@@ -1,3 +1,9 @@
+/*
+ * In order to interact with the Fly machines API you need to start
+ * a proxy server. This file starts that proxy server, waits for it to start
+ * and then implements functions that interact with the Fly API via the proxy.
+ */
+
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { Logger } from "https://deno.land/std@0.144.0/log/logger.ts";
 
