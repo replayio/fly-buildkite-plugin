@@ -1,0 +1,31 @@
+name: Fly
+description: Run a command in a fly vm as a buildkite step
+author: https://github.com/jazzdan
+requirements:
+  - curl
+  - flyctl
+configuration:
+  properties:
+    image:
+      type: string
+    organization:
+      type: string
+    command:
+      type: string
+    secrets:
+      type: object
+    env:
+      type: object
+    cpus:
+      type: number
+    memory:
+      type: number
+    storage:
+      type: number
+  required:
+    - image
+    - organization
+    - command
+    - cpus
+    - memory
+  additionalProperties: false
