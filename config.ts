@@ -2,7 +2,7 @@ export type Config = {
   api_token: string;
   application: string;
   organization: string;
-  dockerfile: string;
+  image: string;
   command: string;
   secrets: Record<string, string>;
   environment: Record<string, string>;
@@ -27,7 +27,7 @@ export function configFromEnv(): Config {
     api_token: flyApiToken,
     application: pluginConfig.application,
     organization: pluginConfig.organization,
-    dockerfile: pluginConfig.dockerfile,
+    image: pluginConfig.image,
     command: pluginConfig.command,
     secrets: pluginConfig.secrets || {},
     environment: pluginConfig.environment || {},
