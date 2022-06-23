@@ -51,25 +51,30 @@ async function setupFlyMachine(
   );
 
   // create a machine in that application
-  await flyProxy.startMachine("fly-agent-test", image, 1, 1024);
+  const name = await flyProxy.startMachine("fly-agent-test", image, 1, 1024);
+
+  return name;
 }
 
 async function main() {
-  // create config from BUILDKITE_PLUGIN_CONFIGURATION
   const config = configFromEnv();
-
-  const imageTag = "registry.fly.io/flybuildkite-test:deployment-1655936542";
 
   await createSecrets("buildkite-agents", config.api_token, config.secrets);
 
-  await setupFlyMachine(
+  const agentName = await setupFlyMachine(
     config.api_token,
     config.organization,
     config.application,
-    imageTag
+    config.image
   );
 
   // build pipeline
+
+  const pipeline = {
+    steps: [{ command: config.command, agents: [`${agentName}=true`] }],
+  };
+
+  console.log(pipeline);
 }
 
 await main();
