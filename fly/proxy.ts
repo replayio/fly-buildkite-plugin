@@ -109,6 +109,7 @@ export class FlyProxy {
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
         },
         guest: {
+          // As of 22-06-22 machines created via the API can only used shared CPUs, not dedicated ones
           cpu_kind: "shared",
           cpus,
           memory_mb: memory,
