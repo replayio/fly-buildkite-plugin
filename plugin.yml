@@ -6,7 +6,7 @@ requirements:
   - flyctl
 configuration:
   properties:
-    dockerfile:
+    image:
       type: string
     organization:
       type: string
@@ -23,7 +23,7 @@ configuration:
     storage:
       type: number
   required:
-    - dockerfile
+    - image
     - organization
     - command
     - cpus
