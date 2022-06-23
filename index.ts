@@ -3,8 +3,6 @@ import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
 import { configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 function createSecrets(
   appName: string,
   accessToken: string,
