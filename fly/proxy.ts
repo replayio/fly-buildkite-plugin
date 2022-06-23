@@ -133,6 +133,8 @@ export class FlyProxy {
     // wait for machine to start
     const machineID = json.id;
     await this.waitForMachine(machineID);
+
+    return name;
   }
 
   private async waitForMachine(machineID: string) {
@@ -142,20 +144,20 @@ export class FlyProxy {
     const maxAttempts = 3;
     let attempts = 0;
     while (attempts < maxAttempts) {
+      attempts++;
       this.logger.info(
         `Waiting for machine to start attempt ${attempts}/${maxAttempts}`
       );
       try {
-        const response = await fetch(
-          `${this.address}/v1/apps/user-functions/machines/${machineID}/wait`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.apiToken}`,
-            },
-          }
-        );
+        const url = `${this.address}/v1/apps/${this.applicationName}/machines/${machineID}/wait`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.apiToken}`,
+          },
+        });
+        console.log(response.status, response.statusText, response.body);
         if (response.status === 200) {
           this.logger.info(`Machine ${machineID} started`);
           return;
@@ -163,7 +165,9 @@ export class FlyProxy {
       } catch (e) {
         this.logger.info(`Failed to wait for machine: ${e}`);
       }
-      attempts++;
+      await delay(3000);
     }
+
+    throw new Error(`Machine ${machineID} failed to start`);
   }
 }
