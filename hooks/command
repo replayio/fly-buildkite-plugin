@@ -1,5 +1,32 @@
 #!/bin/bash
 set -euo pipefail
 
-# TODO(dmiller): don't do this
-deno run --allow-env --allow-run "$(dirname "${BASH_SOURCE[0]}")/../index.ts"
+arch="$(arch)"
+arm=("arm armhf aarch64 aarch64_be armv6l armv7l armv8l arm64e") # arm64
+amd=("x86 x86pc i386 i686 i686-64 x64 x86_64 x86_64h athlon")    # amd64
+if [[ "${arm[*]}" =~ ${arch} ]]; then
+  arch="arm64"
+elif [[ "${amd[*]}" =~ ${arch} ]]; then
+  arch="amd64"
+elif [[ "${arch}" != "ppc64le" ]]; then
+  echo -e "ERROR: unsupported architecture \"${arch}\"" >&2
+  exit 2
+fi
+
+kernel=$(uname -s | awk '{print tolower($0)}')
+allowed=("linux darwin")
+if ! [[ "${allowed[*]}" =~ ${kernel} ]]; then
+  echo -e "ERROR: unsupported kernel \"${kernel}\"" >&2
+  exit 3
+fi
+
+
+# For now just hardcode these
+repo="https://github.com/replayio/fly-buildkite-plugin"
+executable="fly-buildkite-plugin-x86_64-unknown-linux-gnu"
+
+url=${repo}/releases/latest/download/${executable}
+
+curl -Lf -o ${executable} $url && chmod +x ${executable}
+
+./${executable} | buildkite-agent pipeline upload
