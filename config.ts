@@ -28,7 +28,7 @@ export function configFromEnv(): Config {
     image: pluginConfig.image,
     command: pluginConfig.command,
     secrets: pluginConfig.secrets || {},
-    environment: pluginConfig.environment || {},
+    environment: pluginConfig.env || {},
     cpus: pluginConfig.cpus || 1,
     memory: pluginConfig.memory || 1024,
     storage: pluginConfig.storage || null,

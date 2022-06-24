@@ -37,7 +37,9 @@ async function setupFlyMachine(
   flyApiToken: string,
   organization: string,
   applicationName: string,
-  image: string
+  image: string,
+  cpus: number,
+  memory: number
 ) {
   const logger = getLogger();
   // start fly proxy
@@ -49,7 +51,12 @@ async function setupFlyMachine(
   );
 
   const machineNamePrefix = applicationName + "-";
-  const name = await flyProxy.startMachine(machineNamePrefix, image, 1, 1024);
+  const name = await flyProxy.startMachine(
+    machineNamePrefix,
+    image,
+    cpus,
+    memory
+  );
 
   return name;
 }
@@ -125,7 +132,9 @@ async function main() {
     config.api_token,
     config.organization,
     applicationName,
-    config.image
+    config.image,
+    config.cpus,
+    config.memory
   );
 
   // build pipeline
