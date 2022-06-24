@@ -37,7 +37,7 @@ export class FlyProxy {
   private startFlyProxy() {
     const flyProxy = Deno.run({
       cmd: [
-        "flyctl",
+        "fly",
         "--json",
         "--access-token",
         this.apiToken,
