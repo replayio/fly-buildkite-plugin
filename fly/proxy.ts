@@ -73,7 +73,7 @@ export class FlyProxy {
         this.logger.info(`Failed to start fly proxy: ${e}`);
       }
       attempts++;
-      await delay(1000);
+      await delay(1500);
 
       this.logger.info(`Waiting for fly proxy to start...`);
 

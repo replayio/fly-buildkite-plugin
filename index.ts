@@ -1,6 +1,7 @@
 import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
-import { applicationNameFromPipelineName } from "./fly/app.ts";
+import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 
+import { applicationNameFromPipelineName } from "./fly/app.ts";
 import { configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
 
@@ -50,6 +51,8 @@ async function setupFlyMachine(
     organization,
     applicationName
   );
+
+  await delay(1000);
 
   const machineNamePrefix = applicationName + "-";
   const name = await flyProxy.startMachine(
