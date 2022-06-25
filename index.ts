@@ -111,9 +111,9 @@ async function createApplicationIfNotExists(
 async function main() {
   const config = configFromEnv();
 
-  const pipelineName = Deno.env.get("BUILDKITE_PIPELINE_NAME");
+  const pipelineName = Deno.env.get("BUILDKITE_PIPELINE_SLUG");
   if (!pipelineName) {
-    throw new Error("BUILDKITE_PIPELINE_NAME is not set");
+    throw new Error("BUILDKITE_PIPELINE_SLUG is not set");
   }
   const applicationName = applicationNameFromPipelineName(pipelineName);
 
