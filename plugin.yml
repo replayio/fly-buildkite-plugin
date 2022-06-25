@@ -13,7 +13,7 @@ configuration:
     command:
       type: string
     secrets:
-      type: object
+      type: array
     env:
       type: object
     cpus:

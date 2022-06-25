@@ -3,7 +3,7 @@ export type Config = {
   organization: string;
   image: string;
   command: string;
-  secrets: Record<string, string>;
+  secrets: Array<string>;
   environment: Record<string, string>;
   cpus: number;
   memory: number;

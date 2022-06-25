@@ -8,10 +8,13 @@ import { FlyProxy } from "./fly/proxy.ts";
 function createSecrets(
   appName: string,
   accessToken: string,
-  secrets: Record<string, string>
+  secrets: Array<string>
 ) {
-  const stuff = Object.keys(secrets).map(async (key) => {
-    const value = secrets[key];
+  const stuff = secrets.map(async (key) => {
+    const value = Deno.env.get(key);
+    if (!value) {
+      throw new Error(`Secret ${key} is not set in environment`);
+    }
     try {
       const p = Deno.run({
         cmd: [
