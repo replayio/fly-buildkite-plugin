@@ -1,4 +1,5 @@
 import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
+import { applicationNameFromPipelineName } from "./fly/app.ts";
 
 import { configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
@@ -107,17 +108,14 @@ async function createApplicationIfNotExists(
   }
 }
 
-function applicationNameFromPipelineName(): string {
+async function main() {
+  const config = configFromEnv();
+
   const pipelineName = Deno.env.get("BUILDKITE_PIPELINE_NAME");
   if (!pipelineName) {
     throw new Error("BUILDKITE_PIPELINE_NAME is not set");
   }
-  return `buildkite-${pipelineName}`;
-}
-
-async function main() {
-  const config = configFromEnv();
-  const applicationName = applicationNameFromPipelineName();
+  const applicationName = applicationNameFromPipelineName(pipelineName);
 
   // create application if it doesn't exist
   await createApplicationIfNotExists(
