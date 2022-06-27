@@ -95,7 +95,7 @@ export class FlyProxy {
       config: {
         image,
         env: {
-          BUILDKITE_AGENT_TAGS: `fly-agent-${name}`,
+          BUILDKITE_AGENT_TAGS: name,
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
           // If no job is received in 5 minutes then the agent will be disconnected and the machine will shut down
           BUILDKITE_AGENT_DISCONNECT_AFTER_IDLE_TIMEOUT: "300", // 5 minutes
