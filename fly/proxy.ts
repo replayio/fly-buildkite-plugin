@@ -12,7 +12,6 @@ type MachineStartResponse = {
 };
 
 export class FlyProxy {
-  private readonly logger: Logger;
   private readonly apiToken: string;
   private readonly organization: string;
   private readonly applicationName: string;
@@ -21,13 +20,7 @@ export class FlyProxy {
 
   private flyProxyStarted = false;
 
-  constructor(
-    logger: Logger,
-    apiToken: string,
-    organization: string,
-    applicationName: string
-  ) {
-    this.logger = logger;
+  constructor(apiToken: string, organization: string, applicationName: string) {
     this.apiToken = apiToken;
     this.organization = organization;
     this.applicationName = applicationName;
@@ -66,27 +59,24 @@ export class FlyProxy {
         const response = await fetch(`${this.address}/`);
         if (response.status === 404) {
           this.flyProxyStarted = true;
-          this.logger.info("FlyProxy started");
+          console.error("FlyProxy started");
           return;
         }
       } catch (e) {
-        this.logger.info(`Failed to start fly proxy: ${e}`);
+        console.error(`Failed to start fly proxy: ${e}`);
       }
       attempts++;
       await delay(1500);
 
-      this.logger.info(`Waiting for fly proxy to start...`);
+      console.error(`Waiting for fly proxy to start...`);
 
       if (attempts === maxAttempts) {
-        this.logger.error(
-          `Fly proxy failed to start after ${maxAttempts} attempts`
-        );
         throw new Error(
           `Fly proxy failed to start after ${maxAttempts} attempts`
         );
       }
 
-      this.logger.info(`Attempt ${attempts}`);
+      console.error(`Attempt ${attempts}`);
     }
   }
 
@@ -118,7 +108,7 @@ export class FlyProxy {
         },
       },
     };
-    this.logger.info(`Creating machine ${this.applicationName}/${name}`);
+    console.error(`Creating machine ${this.applicationName}/${name}`);
     const response = await fetch(
       `${this.address}/v1/apps/${this.applicationName}/machines`,
       {
@@ -138,7 +128,7 @@ export class FlyProxy {
       );
     }
     const json: MachineStartResponse = await response.json();
-    this.logger.info("Started machine", json);
+    console.error("Started machine", json);
 
     // wait for machine to start
     const machineID = json.id;
@@ -155,7 +145,7 @@ export class FlyProxy {
     let attempts = 0;
     while (attempts < maxAttempts) {
       attempts++;
-      this.logger.info(
+      console.error(
         `Waiting for machine to start attempt ${attempts}/${maxAttempts}`
       );
       try {
@@ -169,11 +159,11 @@ export class FlyProxy {
         });
         console.log(response.status, response.statusText, response.body);
         if (response.status === 200) {
-          this.logger.info(`Machine ${machineID} started`);
+          console.error(`Machine ${machineID} started`);
           return;
         }
       } catch (e) {
-        this.logger.info(`Failed to wait for machine: ${e}`);
+        console.error(`Failed to wait for machine: ${e}`);
       }
       await delay(3000);
     }

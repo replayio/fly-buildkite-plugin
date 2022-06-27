@@ -1,4 +1,3 @@
-import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { writeAll } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
@@ -47,14 +46,8 @@ async function setupFlyMachine(
   cpus: number,
   memory: number
 ) {
-  const logger = getLogger();
   // start fly proxy
-  const flyProxy = new FlyProxy(
-    logger,
-    flyApiToken,
-    organization,
-    applicationName
-  );
+  const flyProxy = new FlyProxy(flyApiToken, organization, applicationName);
 
   await delay(1000);
 
