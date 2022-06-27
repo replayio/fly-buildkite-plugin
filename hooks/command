@@ -31,6 +31,4 @@ curl -Lf -o ${executable} $url && chmod +x ${executable}
 
 fly agent restart
 
-plugin_output=./${executable}
-echo $plugin_output
-echo $plugin_output | buildkite-agent pipeline upload
+./${executable} | buildkite-agent pipeline upload --debug
