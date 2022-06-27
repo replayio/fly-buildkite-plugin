@@ -29,4 +29,6 @@ url=${repo}/releases/latest/download/${executable}
 
 curl -Lf -o ${executable} $url && chmod +x ${executable}
 
+fly agent restart
+
 ./${executable}
