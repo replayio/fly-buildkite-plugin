@@ -157,7 +157,6 @@ export class FlyProxy {
             Authorization: `Bearer ${this.apiToken}`,
           },
         });
-        console.log(response.status, response.statusText, response.body);
         if (response.status === 200) {
           console.error(`Machine ${machineID} started`);
           return;
