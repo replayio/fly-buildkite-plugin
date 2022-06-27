@@ -1,5 +1,6 @@
 import { getLogger } from "https://deno.land/std@0.144.0/log/mod.ts";
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
+import { writeAll } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
 import { applicationNameFromPipelineName } from "./fly/app.ts";
 import { configFromEnv } from "./config.ts";
@@ -146,7 +147,9 @@ async function main() {
     steps: [{ command: config.command, agents: [`${agentName}=true`] }],
   };
 
-  console.log(JSON.stringify(pipeline));
+  const pipelineString = JSON.stringify(pipeline);
+  const pipelineBytes = new TextEncoder().encode(pipelineString);
+  await writeAll(Deno.stdout, pipelineBytes);
 }
 
 await main();
