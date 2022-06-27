@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-set -x
 
 arch="$(arch)"
 arm=("arm armhf aarch64 aarch64_be armv6l armv7l armv8l arm64e") # arm64
@@ -32,4 +31,6 @@ curl -Lf -o ${executable} $url && chmod +x ${executable}
 
 fly agent restart
 
-./${executable} | buildkite-agent pipeline upload
+plugin_output=./${executable}
+echo $plugin_output
+echo $plugin_output | buildkite-agent pipeline upload
