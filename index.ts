@@ -146,7 +146,7 @@ async function main() {
     steps: [{ command: config.command, agents: [`${agentName}=true`] }],
   };
 
-  console.log(pipeline);
+  console.log(JSON.stringify(pipeline));
 }
 
 await main();
