@@ -142,6 +142,7 @@ async function main() {
 
   const pipelineString = JSON.stringify(pipeline);
   const pipelineBytes = new TextEncoder().encode(pipelineString);
+  await writeAll(Deno.stderr, pipelineBytes);
   await writeAll(Deno.stdout, pipelineBytes);
 }
 
