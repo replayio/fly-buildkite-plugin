@@ -118,6 +118,7 @@ export class FlyProxy {
         },
       },
     };
+    this.logger.info(`Creating machine ${this.applicationName}/${name}`);
     const response = await fetch(
       `${this.address}/v1/apps/${this.applicationName}/machines`,
       {
