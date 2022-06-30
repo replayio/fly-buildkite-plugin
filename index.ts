@@ -151,6 +151,7 @@ async function main() {
     stdin: "piped",
   });
   await p.stdin.write(pipelineBytes);
+  p.stdin.close();
   const pipelineUploadResult = await p.status();
   if (!pipelineUploadResult.success) {
     throw new Error(
