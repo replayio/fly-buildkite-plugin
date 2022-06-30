@@ -144,6 +144,19 @@ async function main() {
   const pipelineBytes = new TextEncoder().encode(pipelineString);
   await writeAll(Deno.stderr, pipelineBytes);
   await writeAll(Deno.stdout, pipelineBytes);
+
+  // pass pipelineString to build-agent pipeline upload stdin
+  const p = Deno.run({
+    cmd: ["buildkite-agent", "pipeline", "upload"],
+    stdin: "piped",
+  });
+  await p.stdin.write(pipelineBytes);
+  const pipelineUploadResult = await p.status();
+  if (!pipelineUploadResult.success) {
+    throw new Error(
+      `Failed to upload pipeline: failed with ${pipelineUploadResult.code}`
+    );
+  }
 }
 
 await main();

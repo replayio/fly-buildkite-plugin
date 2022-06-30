@@ -5,7 +5,6 @@
  */
 
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
-import { Logger } from "https://deno.land/std@0.144.0/log/logger.ts";
 
 type MachineStartResponse = {
   id: string;
