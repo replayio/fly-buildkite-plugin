@@ -83,7 +83,8 @@ export class FlyProxy {
     namePrefix: string,
     image: string,
     cpus: number,
-    memory: number
+    memory: number,
+    env: Record<string, string>
   ) {
     await this.waitForFlyProxyToStart();
 
@@ -98,6 +99,7 @@ export class FlyProxy {
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
           // If no job is received in 5 minutes then the agent will be disconnected and the machine will shut down
           BUILDKITE_AGENT_DISCONNECT_AFTER_IDLE_TIMEOUT: "300", // 5 minutes
+          ...env,
         },
         guest: {
           // As of 22-06-22 machines created via the API can only used shared CPUs, not dedicated ones

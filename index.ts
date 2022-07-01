@@ -44,7 +44,8 @@ async function setupFlyMachine(
   applicationName: string,
   image: string,
   cpus: number,
-  memory: number
+  memory: number,
+  env: Record<string, string>
 ) {
   // start fly proxy
   const flyProxy = new FlyProxy(flyApiToken, organization, applicationName);
@@ -56,7 +57,8 @@ async function setupFlyMachine(
     machineNamePrefix,
     image,
     cpus,
-    memory
+    memory,
+    env
   );
 
   return name;
@@ -132,7 +134,8 @@ async function main() {
     applicationName,
     config.image,
     config.cpus,
-    config.memory
+    config.memory,
+    config.environment
   );
 
   // build pipeline
