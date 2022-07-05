@@ -10,8 +10,6 @@ configuration:
       type: string
     organization:
       type: string
-    command:
-      type: string
     secrets:
       type: array
     env:

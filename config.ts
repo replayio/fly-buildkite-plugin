@@ -22,11 +22,16 @@ export function configFromEnv(): Config {
     throw new Error("FLY_API_TOKEN is not set");
   }
 
+  const command = Deno.env.get("BUILDKITE_COMMAND");
+  if (!command) {
+    throw new Error("BUILDKITE_COMMAND is not set");
+  }
+
   const config: Config = {
     api_token: flyApiToken,
     organization: pluginConfig.organization,
     image: pluginConfig.image,
-    command: pluginConfig.command,
+    command,
     secrets: pluginConfig.secrets || [],
     environment: pluginConfig.env || {},
     cpus: pluginConfig.cpus || 1,
