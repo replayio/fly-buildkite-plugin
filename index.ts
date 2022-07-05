@@ -150,7 +150,7 @@ async function main() {
 
   // pass pipelineString to build-agent pipeline upload stdin
   const p = Deno.run({
-    cmd: ["buildkite-agent", "pipeline", "upload", "--replace"],
+    cmd: ["buildkite-agent", "pipeline", "upload"],
     stdin: "piped",
   });
   await p.stdin.write(pipelineBytes);
