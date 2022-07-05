@@ -23,7 +23,6 @@ configuration:
   required:
     - image
     - organization
-    - command
     - cpus
     - memory
   additionalProperties: false
