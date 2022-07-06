@@ -8,6 +8,7 @@ export type Config = {
   cpus: number;
   memory: number;
   storage: number | null;
+  matrix: Array<string> | null;
 };
 
 export function configFromEnv(): Config {
@@ -37,6 +38,7 @@ export function configFromEnv(): Config {
     cpus: pluginConfig.cpus || 1,
     memory: pluginConfig.memory || 1024,
     storage: pluginConfig.storage || null,
+    matrix: pluginConfig.matrix || null,
   };
 
   return config;

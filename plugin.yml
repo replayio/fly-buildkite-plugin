@@ -20,6 +20,8 @@ configuration:
       type: number
     storage:
       type: number
+    matrix:
+      type: array
   required:
     - image
     - organization

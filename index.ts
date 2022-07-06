@@ -2,7 +2,7 @@ import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { writeAll } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
 import { applicationNameFromPipelineName } from "./fly/app.ts";
-import { configFromEnv } from "./config.ts";
+import { Config, configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
 
 function createSecrets(
@@ -36,32 +36,6 @@ function createSecrets(
   });
 
   return Promise.all(stuff);
-}
-
-async function setupFlyMachine(
-  flyApiToken: string,
-  organization: string,
-  applicationName: string,
-  image: string,
-  cpus: number,
-  memory: number,
-  env: Record<string, string>
-) {
-  // start fly proxy
-  const flyProxy = new FlyProxy(flyApiToken, organization, applicationName);
-
-  await delay(1000);
-
-  const machineNamePrefix = applicationName + "-";
-  const name = await flyProxy.startMachine(
-    machineNamePrefix,
-    image,
-    cpus,
-    memory,
-    env
-  );
-
-  return name;
 }
 
 type AppList = Array<{
@@ -110,6 +84,24 @@ async function createApplicationIfNotExists(
   }
 }
 
+async function createMachine(
+  flyProxy: FlyProxy,
+  applicationName: string,
+  command: string,
+  config: Config
+) {
+  const machineNamePrefix = applicationName + "-";
+  const agentName = await flyProxy.startMachine(
+    machineNamePrefix,
+    config.image,
+    config.cpus,
+    config.memory,
+    config.environment
+  );
+
+  return { command: command, agents: [`${agentName}=true`] };
+}
+
 async function main() {
   const config = configFromEnv();
 
@@ -128,20 +120,33 @@ async function main() {
 
   await createSecrets(applicationName, config.api_token, config.secrets);
 
-  const agentName = await setupFlyMachine(
+  // start fly proxy
+  const flyProxy = new FlyProxy(
     config.api_token,
     config.organization,
-    applicationName,
-    config.image,
-    config.cpus,
-    config.memory,
-    config.environment
+    applicationName
   );
 
-  // build pipeline
-  const pipeline = {
-    steps: [{ command: config.command, agents: [`${agentName}=true`] }],
-  };
+  await delay(1000);
+
+  let pipeline;
+  if (config.matrix) {
+    const commandPromises = config.matrix.map((m) => {
+      const command = config.command.replace("{{matrix}}", m);
+      return createMachine(flyProxy, applicationName, command, config);
+    });
+    const commands = await Promise.all(commandPromises);
+    pipeline = { steps: commands };
+  } else {
+    const command = config.command;
+    const step = await createMachine(
+      flyProxy,
+      applicationName,
+      command,
+      config
+    );
+    pipeline = { steps: [step] };
+  }
 
   const pipelineString = JSON.stringify(pipeline);
   const pipelineBytes = new TextEncoder().encode(pipelineString);
