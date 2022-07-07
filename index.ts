@@ -128,6 +128,7 @@ async function main() {
   );
 
   await delay(1000);
+  await flyProxy.waitForFlyProxyToStart();
 
   let pipeline;
   if (config.matrix) {

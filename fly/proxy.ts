@@ -45,7 +45,7 @@ export class FlyProxy {
     return flyProxy;
   }
 
-  private async waitForFlyProxyToStart() {
+  public async waitForFlyProxyToStart() {
     if (this.flyProxyStarted) {
       return;
     }
@@ -88,7 +88,7 @@ export class FlyProxy {
   ) {
     await this.waitForFlyProxyToStart();
 
-    const name = `${namePrefix}-${Math.floor(Math.random() * 10000)}`;
+    const name = `${namePrefix}-${Math.floor(Math.random() * 1000000)}`;
 
     const createMachinePayload = {
       name,

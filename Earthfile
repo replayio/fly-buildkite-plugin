@@ -5,7 +5,7 @@ FROM denoland/deno:alpine-1.23.1
 compile:
   COPY index.ts config.ts .
   COPY fly fly
-  ARG TARGET_PLATFORM=aarch64-apple-darwin
+  ARG TARGET_PLATFORM=x86_64-unknown-linux-gnu
   RUN deno compile --target ${TARGET_PLATFORM} -o fly-buildkite-plugin-${TARGET_PLATFORM}  --allow-env --allow-run --allow-net index.ts
   SAVE ARTIFACT fly-buildkite-plugin-${TARGET_PLATFORM} AS LOCAL out/fly-buildkite-plugin-${TARGET_PLATFORM}
 
