@@ -84,10 +84,18 @@ async function createApplicationIfNotExists(
   }
 }
 
+// deno-lint-ignore no-explicit-any
+type Plugin = Record<string, any>;
+
+export type CommandStep = {
+  command: string;
+  plugins?: Plugin[];
+};
+
 async function createMachine(
   flyProxy: FlyProxy,
   applicationName: string,
-  command: string,
+  command: CommandStep,
   config: Config
 ) {
   const machineNamePrefix = applicationName + "-";
@@ -134,16 +142,22 @@ async function main() {
   if (config.matrix) {
     const commandPromises = config.matrix.map((m) => {
       const command = config.command.replace("{{matrix}}", m);
-      return createMachine(flyProxy, applicationName, command, config);
+      const commandConfig = {
+        command,
+      };
+      return createMachine(flyProxy, applicationName, commandConfig, config);
     });
     const commands = await Promise.all(commandPromises);
     pipeline = { steps: commands };
   } else {
     const command = config.command;
+    const commandConfig = {
+      command,
+    };
     const step = await createMachine(
       flyProxy,
       applicationName,
-      command,
+      commandConfig,
       config
     );
     pipeline = { steps: [step] };
