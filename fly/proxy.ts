@@ -158,7 +158,7 @@ export class FlyProxy {
             Authorization: `Bearer ${this.apiToken}`,
           },
         });
-        if (response.status === 200) {
+        if (response.ok) {
           console.error(`Machine ${machineID} started`);
           return;
         }
@@ -168,6 +168,6 @@ export class FlyProxy {
       await delay(3000);
     }
 
-    throw new Error(`Machine ${machineID} failed to start`);
+    throw new Error(`Timed out waiting for machine ${machineID} to start`);
   }
 }
