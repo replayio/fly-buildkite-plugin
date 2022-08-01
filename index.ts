@@ -28,6 +28,9 @@ function createSecrets(
           appName,
           `${key}=${value}`,
         ],
+        env: {
+          FLY_APP_NAME: appName,
+        },
       });
       await p.status();
     } catch (e) {
