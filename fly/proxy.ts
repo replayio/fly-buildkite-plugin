@@ -38,8 +38,8 @@ export class FlyProxy {
         "machine",
         "api-proxy",
       ],
-      stdout: "piped",
-      stderr: "piped",
+      stdout: "inherit",
+      stderr: "inherit",
     });
 
     return flyProxy;

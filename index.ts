@@ -16,6 +16,7 @@ function createSecrets(
       throw new Error(`Secret ${key} is not set in environment`);
     }
     try {
+      console.error(`Creating secret ${key}`);
       const p = Deno.run({
         cmd: [
           "fly",
@@ -34,7 +35,7 @@ function createSecrets(
       });
       await p.status();
     } catch (e) {
-      console.error(e);
+      console.error(`Failed to set secret ${key}, error: ${e}`);
     }
   });
 
@@ -65,6 +66,7 @@ async function createApplicationIfNotExists(
   const applicationNames = listOutputJson.map((app) => app.Name);
   // If the application doesn't exist, create it
   if (!applicationNames.includes(applicationName)) {
+    console.error(`Creating application ${applicationName}`);
     const p = Deno.run({
       cmd: [
         "fly",
