@@ -88,14 +88,13 @@ export class FlyProxy {
   ) {
     await this.waitForFlyProxyToStart();
 
-    const name = `${namePrefix}-${crypto.randomUUID()}`;
+    const agentName = `${namePrefix}-${crypto.randomUUID()}`;
 
     const createMachinePayload = {
-      name,
       config: {
         image,
         env: {
-          BUILDKITE_AGENT_TAGS: name,
+          BUILDKITE_AGENT_TAGS: agentName,
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
           // If no job is received in 5 minutes then the agent will be disconnected and the machine will shut down
           BUILDKITE_AGENT_DISCONNECT_AFTER_IDLE_TIMEOUT: "300", // 5 minutes
@@ -109,7 +108,7 @@ export class FlyProxy {
         },
       },
     };
-    console.error(`Creating machine ${this.applicationName}/${name}`);
+    console.error(`Creating machine ${this.applicationName}/${agentName}`);
     const response = await fetch(
       `${this.address}/v1/apps/${this.applicationName}/machines`,
       {
@@ -123,7 +122,7 @@ export class FlyProxy {
     );
     if (response.status !== 200) {
       throw new Error(
-        `Failed to start machine ${name}: ${response.status} ${
+        `Failed to start machine for agent ${agentName}: ${response.status} ${
           response.statusText
         } ${await response.text()}`
       );
@@ -135,7 +134,7 @@ export class FlyProxy {
     const machineID = json.id;
     await this.waitForMachine(machineID);
 
-    return name;
+    return agentName;
   }
 
   private async waitForMachine(machineID: string) {
