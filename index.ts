@@ -134,6 +134,7 @@ async function main() {
   await createSecrets(applicationName, config.api_token, config.secrets);
 
   // start fly proxy
+  console.error("Starting fly proxy");
   const flyProxy = new FlyProxy(
     config.api_token,
     config.organization,
@@ -142,6 +143,7 @@ async function main() {
 
   await delay(1000);
   await flyProxy.waitForFlyProxyToStart();
+  console.error("Fly proxy started");
 
   let pipeline;
   if (config.matrix) {
