@@ -83,6 +83,11 @@ export class FlyProxy {
     }
   }
 
+  public stop() {
+    this.flyProxy.kill("SIGQUIT");
+    this.flyProxy.close();
+  }
+
   public async startMachine(
     namePrefix: string,
     image: string,

@@ -142,48 +142,55 @@ async function main() {
   await flyProxy.waitForFlyProxyToStart();
   console.error("Fly proxy started");
 
-  let pipeline;
-  if (config.matrix) {
-    const commandPromises = config.matrix.map((m) => {
-      const command = config.command.replace("{{matrix}}", m);
+  try {
+    let pipeline;
+    if (config.matrix) {
+      const commandPromises = config.matrix.map((m) => {
+        const command = config.command.replace("{{matrix}}", m);
+        const commandConfig = {
+          command,
+        };
+        return createMachine(flyProxy, applicationName, commandConfig, config);
+      });
+      const commands = await Promise.all(commandPromises);
+      pipeline = { steps: commands };
+    } else {
+      const command = config.command;
       const commandConfig = {
         command,
       };
-      return createMachine(flyProxy, applicationName, commandConfig, config);
+      const step = await createMachine(
+        flyProxy,
+        applicationName,
+        commandConfig,
+        config
+      );
+      pipeline = { steps: [step] };
+    }
+
+    const pipelineString = JSON.stringify(pipeline);
+    const pipelineBytes = new TextEncoder().encode(pipelineString);
+    await writeAll(Deno.stderr, pipelineBytes);
+    await writeAll(Deno.stdout, pipelineBytes);
+
+    // pass pipelineString to build-agent pipeline upload stdin
+    const p = Deno.run({
+      cmd: ["buildkite-agent", "pipeline", "upload"],
+      stdin: "piped",
     });
-    const steps = await Promise.all(commandPromises);
-    pipeline = { steps: steps };
-  } else {
-    const command = config.command;
-    const commandConfig = {
-      command,
-    };
-    const step = await createMachine(
-      flyProxy,
-      applicationName,
-      commandConfig,
-      config
-    );
-    pipeline = { steps: [step] };
-  }
-
-  const pipelineString = JSON.stringify(pipeline);
-  const pipelineBytes = new TextEncoder().encode(pipelineString);
-  await writeAll(Deno.stderr, pipelineBytes);
-  await writeAll(Deno.stdout, pipelineBytes);
-
-  // pass pipelineString to build-agent pipeline upload stdin
-  const p = Deno.run({
-    cmd: ["buildkite-agent", "pipeline", "upload"],
-    stdin: "piped",
-  });
-  await p.stdin.write(pipelineBytes);
-  p.stdin.close();
-  const pipelineUploadResult = await p.status();
-  if (!pipelineUploadResult.success) {
-    throw new Error(
-      `Failed to upload pipeline: failed with ${pipelineUploadResult.code}`
-    );
+    await p.stdin.write(pipelineBytes);
+    p.stdin.close();
+    const pipelineUploadResult = await p.status();
+    if (!pipelineUploadResult.success) {
+      throw new Error(
+        `Failed to upload pipeline: failed with ${pipelineUploadResult.code}`
+      );
+    }
+  } catch (e) {
+    console.error(e);
+    Deno.exit(1);
+  } finally {
+    flyProxy.stop();
   }
 }
 
