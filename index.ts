@@ -27,7 +27,6 @@ function createSecrets(
       accessToken,
       "secrets",
       "set",
-      "--detach",
       "--app",
       appName,
       ...secretsStrings,
