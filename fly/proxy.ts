@@ -7,7 +7,8 @@
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { copy } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
-const regions = ["dfw", "iad", "lax", "mia", "org", "sea", "sjc"];
+const REGIONS = ["dfw", "iad", "lax", "mia", "org", "sea", "sjc"];
+const MAX_ATTEMPTS = 3;
 
 type MachineStartResponse = {
   id: string;
@@ -97,9 +98,9 @@ export class FlyProxy {
     memory: number,
     env: Record<string, string>,
     attempts = 0,
-    regionsToTry: string[] = regions
+    regionsToTry: string[] = REGIONS
   ): Promise<string> {
-    if (attempts > 3) {
+    if (attempts > MAX_ATTEMPTS) {
       throw new Error(`Failed to start machine after ${attempts} attempts`);
     }
 
@@ -130,7 +131,9 @@ export class FlyProxy {
         },
       },
     };
-    console.error(`Creating machine ${this.applicationName}/${agentName}`);
+    console.error(
+      `Creating machine ${this.applicationName}/${agentName} in region ${region}`
+    );
     const response = await fetch(
       `${this.address}/v1/apps/${this.applicationName}/machines`,
       {
@@ -182,7 +185,7 @@ export class FlyProxy {
       memory,
       env,
       0,
-      regions
+      REGIONS
     );
   }
 
