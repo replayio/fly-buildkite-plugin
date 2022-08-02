@@ -54,12 +54,6 @@ export class FlyProxy {
       return;
     }
 
-    const flyProxyStatus = await this.flyProxy.status();
-    if (!flyProxyStatus.success) {
-      console.error(`Fly proxy exited with code ${flyProxyStatus.code}`);
-      throw new Error(`Fly proxy exited with code ${flyProxyStatus.code}`);
-    }
-
     // wait for GET http://localhost:4280/ to return a 404 response
     const maxAttempts = 3;
     let attempts = 0;
