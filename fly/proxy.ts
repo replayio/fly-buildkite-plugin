@@ -7,6 +7,8 @@
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { copy } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
+const regions = ["dfw", "iad", "lax", "mia", "org", "sea", "sjc"];
+
 type MachineStartResponse = {
   id: string;
 };
@@ -88,20 +90,31 @@ export class FlyProxy {
     this.flyProxy.close();
   }
 
-  public async startMachine(
+  private async startMachineInner(
     namePrefix: string,
     image: string,
     cpus: number,
     memory: number,
-    env: Record<string, string>
-  ) {
+    env: Record<string, string>,
+    attempts = 0,
+    regionsToTry: string[] = regions
+  ): Promise<string> {
+    if (attempts > 3) {
+      throw new Error(`Failed to start machine after ${attempts} attempts`);
+    }
+
     await this.waitForFlyProxyToStart();
 
     const agentName = `${namePrefix}-${crypto.randomUUID()}`;
 
+    // pick a random region to try
+    const region =
+      regionsToTry[Math.floor(Math.random() * regionsToTry.length)];
+
     const createMachinePayload = {
       config: {
         image,
+        region,
         env: {
           BUILDKITE_AGENT_TAGS: agentName,
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
@@ -130,10 +143,19 @@ export class FlyProxy {
       }
     );
     if (response.status !== 200) {
-      throw new Error(
+      console.error(
         `Failed to start machine for agent ${agentName}: ${response.status} ${
           response.statusText
         } ${await response.text()}`
+      );
+      return this.startMachineInner(
+        namePrefix,
+        image,
+        cpus,
+        memory,
+        env,
+        attempts + 1,
+        regionsToTry
       );
     }
     const json: MachineStartResponse = await response.json();
@@ -144,6 +166,24 @@ export class FlyProxy {
     await this.waitForMachine(machineID);
 
     return agentName;
+  }
+
+  public startMachine(
+    namePrefix: string,
+    image: string,
+    cpus: number,
+    memory: number,
+    env: Record<string, string>
+  ) {
+    return this.startMachineInner(
+      namePrefix,
+      image,
+      cpus,
+      memory,
+      env,
+      0,
+      regions
+    );
   }
 
   private async waitForMachine(machineID: string) {
