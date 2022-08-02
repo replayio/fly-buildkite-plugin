@@ -84,7 +84,7 @@ export class FlyProxy {
   }
 
   public stop() {
-    this.flyProxy.kill("SIGQUIT");
+    this.flyProxy.kill("SIGTERM");
     this.flyProxy.close();
   }
 
