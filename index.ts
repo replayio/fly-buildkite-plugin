@@ -109,7 +109,7 @@ async function createMachine(
     config.environment
   );
 
-  return { command: command, agents: [`${agentName}=true`] };
+  return { ...command, agents: [`${agentName}=true`] };
 }
 
 async function main() {
@@ -151,8 +151,8 @@ async function main() {
       };
       return createMachine(flyProxy, applicationName, commandConfig, config);
     });
-    const commands = await Promise.all(commandPromises);
-    pipeline = { steps: commands };
+    const steps = await Promise.all(commandPromises);
+    pipeline = { steps: steps };
   } else {
     const command = config.command;
     const commandConfig = {
