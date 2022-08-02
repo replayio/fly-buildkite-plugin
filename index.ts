@@ -10,36 +10,34 @@ function createSecrets(
   accessToken: string,
   secrets: Array<string>
 ) {
-  const stuff = secrets.map(async (key) => {
+  const secretsStrings = secrets.map((key) => {
     const value = Deno.env.get(key);
     if (!value) {
       throw new Error(`Secret ${key} is not set in environment`);
     }
-    try {
-      console.error(`Creating secret ${key}`);
-      const p = Deno.run({
-        cmd: [
-          "fly",
-          "--json",
-          "--access-token",
-          accessToken,
-          "secrets",
-          "set",
-          "--app",
-          appName,
-          `${key}=${value}`,
-        ],
-        env: {
-          FLY_APP_NAME: appName,
-        },
-      });
-      await p.status();
-    } catch (e) {
-      console.error(`Failed to set secret ${key}, error: ${e}`);
-    }
+
+    return `${key}=${value}`;
   });
 
-  return Promise.all(stuff);
+  const p = Deno.run({
+    cmd: [
+      "fly",
+      "--json",
+      "--access-token",
+      accessToken,
+      "secrets",
+      "set",
+      "--detach",
+      "--app",
+      appName,
+      ...secretsStrings,
+    ],
+    env: {
+      FLY_APP_NAME: appName,
+    },
+  });
+
+  return p.status();
 }
 
 type AppList = Array<{
