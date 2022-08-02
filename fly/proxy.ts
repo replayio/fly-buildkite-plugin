@@ -5,6 +5,7 @@
  */
 
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
+import { copy } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
 type MachineStartResponse = {
   id: string;
@@ -38,9 +39,12 @@ export class FlyProxy {
         "machine",
         "api-proxy",
       ],
-      stdout: "inherit",
-      stderr: "inherit",
+      stdout: "piped",
+      stderr: "piped",
     });
+
+    copy(flyProxy.stdout, Deno.stdout);
+    copy(flyProxy.stderr, Deno.stderr);
 
     return flyProxy;
   }
