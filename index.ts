@@ -5,38 +5,56 @@ import { applicationNameFromPipelineName } from "./fly/app.ts";
 import { Config, configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
 
-function createSecrets(
+async function createSecrets(
   appName: string,
   accessToken: string,
   secrets: Array<string>
 ) {
-  const secretsStrings = secrets.map((key) => {
-    const value = Deno.env.get(key);
-    if (!value) {
-      throw new Error(`Secret ${key} is not set in environment`);
+  const query = `mutation MyMutation($appId: ID!, $secrets: [SecretInput!]!) {
+  setSecrets(
+    input: {
+      appId: $appId
+      secrets: $secrets
+      replaceAll: false
     }
+  ) {
+    app {
+      name
+      secrets {
+        name,
+        createdAt
+      }
+    }
+  }
+}`;
 
-    return `${key}=${value}`;
-  });
+  const variables = {
+    appId: appName,
+    secrets: secrets.map((key) => {
+      const value = Deno.env.get(key);
+      if (!value) {
+        throw new Error(`Secret ${key} is not set in environment`);
+      }
 
-  const p = Deno.run({
-    cmd: [
-      "fly",
-      "--json",
-      "--access-token",
-      accessToken,
-      "secrets",
-      "set",
-      "--app",
-      appName,
-      ...secretsStrings,
-    ],
-    env: {
-      FLY_APP_NAME: appName,
+      return {
+        key,
+        value,
+      };
+    }),
+  };
+
+  const result = await fetch("https://api.fly.io/graphql", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({ query, variables }),
   });
 
-  return p.status();
+  if (!result.ok) {
+    throw new Error(`Failed to create secrets: ${await result.text()}`);
+  }
 }
 
 type AppList = Array<{
