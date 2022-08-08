@@ -134,6 +134,7 @@ export class FlyProxy {
     console.error(
       `Creating machine ${this.applicationName}/${agentName} in region ${region}`
     );
+    console.error(JSON.stringify(createMachinePayload, null, 2));
     const response = await fetch(
       `${this.address}/v1/apps/${this.applicationName}/machines`,
       {
