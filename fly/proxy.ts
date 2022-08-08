@@ -113,9 +113,9 @@ export class FlyProxy {
       regionsToTry[Math.floor(Math.random() * regionsToTry.length)];
 
     const createMachinePayload = {
+      region,
       config: {
         image,
-        region,
         env: {
           BUILDKITE_AGENT_TAGS: agentName,
           BUILDKITE_AGENT_DISCONNECT_AFTER_JOB: "true",
