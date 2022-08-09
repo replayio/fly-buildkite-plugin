@@ -159,7 +159,8 @@ export class FlyProxy {
         memory,
         env,
         attempts + 1,
-        regionsToTry
+        // remove the region we just tried from the list
+        regionsToTry.filter((r) => r !== region)
       );
     }
     const json: MachineStartResponse = await response.json();
@@ -167,7 +168,21 @@ export class FlyProxy {
 
     // wait for machine to start
     const machineID = json.id;
-    await this.waitForMachine(machineID);
+    try {
+      await this.waitForMachine(machineID);
+    } catch (e) {
+      console.error(`Failed to start machine: ${e}`);
+      return this.startMachineInner(
+        namePrefix,
+        image,
+        cpus,
+        memory,
+        env,
+        attempts + 1,
+        // remove the region we just tried from the list
+        regionsToTry.filter((r) => r !== region)
+      );
+    }
 
     return agentName;
   }
