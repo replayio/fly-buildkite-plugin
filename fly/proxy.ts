@@ -7,7 +7,7 @@
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { copy } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
-const REGIONS = ["dfw", "iad", "lax", "mia", "org", "sea", "sjc"];
+const REGIONS = ["dfw", "iad", "lax", "mia", "ord", "sea", "sjc"];
 const MAX_ATTEMPTS = 3;
 
 type MachineStartResponse = {
