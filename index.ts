@@ -66,16 +66,22 @@ async function createApplicationIfNotExists(
   organization: string,
   applicationName: string
 ) {
+  const cmd = ["fly", "--json", "--access-token", flyApiToken, "apps", "list"];
+  console.error(`Checking list of apps`, cmd.join(" "));
   const p = Deno.run({
-    cmd: ["fly", "--json", "--access-token", flyApiToken, "apps", "list"],
+    cmd,
     stdout: "piped",
-    stderr: "piped",
+    stderr: "inherit",
   });
-  const status = await p.status();
+
+  console.error("Getting status and output");
+  const [status, listOutput] = await Promise.all([p.status(), p.output()]);
+  p.close();
   if (!status.success) {
+    console.error("Failed to get list of fly apps");
     throw new Error("Failed to get list of fly apps");
   }
-  const listOutput = await p.output();
+  console.error("Got status and output");
   const listOutputString = new TextDecoder().decode(listOutput);
   const listOutputJson: AppList = JSON.parse(listOutputString);
   const applicationNames = listOutputJson.map((app) => app.Name);
@@ -140,12 +146,14 @@ async function main() {
   const applicationName = applicationNameFromPipelineName(pipelineName);
 
   // create application if it doesn't exist
+  console.error("Checking if application exists");
   await createApplicationIfNotExists(
     config.api_token,
     config.organization,
     applicationName
   );
 
+  console.error("Creating secrets");
   await createSecrets(applicationName, config.api_token, config.secrets);
 
   // start fly proxy
@@ -212,4 +220,7 @@ async function main() {
   }
 }
 
-await main();
+await main().catch((e) => {
+  console.error(`Error in main`, e);
+  throw e;
+});
