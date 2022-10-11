@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+set -x
 
 arch="$(arch)"
 arm=("arm armhf aarch64 aarch64_be armv6l armv7l armv8l arm64e") # arm64
