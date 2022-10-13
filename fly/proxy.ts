@@ -14,6 +14,27 @@ type MachineStartResponse = {
   id: string;
 };
 
+type VolumeCreateResponse = {
+  id: string;
+};
+
+type CreateMachinePayload = {
+  region: string;
+  config: {
+    image: string;
+    env: Record<string, string>;
+    guest: {
+      cpu_kind: "shared";
+      cpus: number;
+      memory_mb: number;
+    };
+  };
+  mounts: {
+    volume: string;
+    path: string;
+  }[];
+};
+
 export class FlyProxy {
   private readonly apiToken: string;
   private readonly organization: string;
@@ -91,15 +112,52 @@ export class FlyProxy {
     this.flyProxy.close();
   }
 
+  private async createVolume(region: string, sizeInGB: number) {
+    const cmd = [
+      "fly",
+      "--json",
+      "--access-token",
+      this.apiToken,
+      "-a",
+      this.applicationName,
+      "volumes",
+      "create",
+      "buildkite_data",
+      "--region",
+      region,
+      "--size",
+      sizeInGB.toString(),
+    ];
+    const p = Deno.run({ cmd, stdout: "piped", stderr: "inherit" });
+    const [status, createVolumeOutput] = await Promise.all([
+      p.status(),
+      p.output(),
+    ]);
+    p.close();
+    if (!status.success) {
+      console.error("Failed to create volume");
+      throw new Error("Failed to create volume");
+    }
+
+    const volumeOutputString = new TextDecoder().decode(createVolumeOutput);
+    const volumeOutputJson: VolumeCreateResponse =
+      JSON.parse(volumeOutputString);
+
+    return volumeOutputJson.id;
+  }
+
+  // TODO(dmiller): I guess this needs to try to create a volume too?
   private async startMachineInner(
     namePrefix: string,
     image: string,
     cpus: number,
     memory: number,
+    storageInGB: number | null,
     env: Record<string, string>,
     attempts = 0,
-    regionsToTry: string[] = REGIONS
-  ): Promise<[string, string]> {
+    regionsToTry: string[] = REGIONS,
+    volumesCreated: string[] = []
+  ): Promise<[string, string, string[]]> {
     if (attempts > MAX_ATTEMPTS) {
       throw new Error(`Failed to start machine after ${attempts} attempts`);
     }
@@ -112,7 +170,28 @@ export class FlyProxy {
     const region =
       regionsToTry[Math.floor(Math.random() * regionsToTry.length)];
 
-    const createMachinePayload = {
+    let volumeId;
+    if (storageInGB) {
+      try {
+        volumeId = await this.createVolume(region, storageInGB);
+      } catch (e) {
+        console.error("Failed to create volume", e);
+        return this.startMachineInner(
+          namePrefix,
+          image,
+          cpus,
+          memory,
+          storageInGB,
+          env,
+          attempts + 1,
+          // remove the region we just tried from the list
+          regionsToTry.filter((r) => r !== region),
+          volumesCreated
+        );
+      }
+      volumesCreated.push(volumeId);
+    }
+    const createMachinePayload: CreateMachinePayload = {
       region,
       config: {
         image,
@@ -130,7 +209,14 @@ export class FlyProxy {
           memory_mb: memory,
         },
       },
+      mounts: [],
     };
+    if (volumeId) {
+      createMachinePayload.mounts.push({
+        volume: volumeId,
+        path: "/mnt/data",
+      });
+    }
     console.error(
       `Creating machine ${this.applicationName}/${agentName} in region ${region}`
     );
@@ -157,10 +243,12 @@ export class FlyProxy {
         image,
         cpus,
         memory,
+        storageInGB,
         env,
         attempts + 1,
         // remove the region we just tried from the list
-        regionsToTry.filter((r) => r !== region)
+        regionsToTry.filter((r) => r !== region),
+        volumesCreated
       );
     }
     const json: MachineStartResponse = await response.json();
@@ -177,14 +265,16 @@ export class FlyProxy {
         image,
         cpus,
         memory,
+        storageInGB,
         env,
         attempts + 1,
         // remove the region we just tried from the list
-        regionsToTry.filter((r) => r !== region)
+        regionsToTry.filter((r) => r !== region),
+        volumesCreated
       );
     }
 
-    return [agentName, machineID];
+    return [agentName, machineID, volumesCreated];
   }
 
   public startMachine(
@@ -192,6 +282,7 @@ export class FlyProxy {
     image: string,
     cpus: number,
     memory: number,
+    storageInGB: number | null,
     env: Record<string, string>
   ) {
     return this.startMachineInner(
@@ -199,6 +290,7 @@ export class FlyProxy {
       image,
       cpus,
       memory,
+      storageInGB,
       env,
       0,
       REGIONS
