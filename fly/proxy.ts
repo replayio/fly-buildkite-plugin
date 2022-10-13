@@ -99,7 +99,7 @@ export class FlyProxy {
     env: Record<string, string>,
     attempts = 0,
     regionsToTry: string[] = REGIONS
-  ): Promise<string> {
+  ): Promise<[string, string]> {
     if (attempts > MAX_ATTEMPTS) {
       throw new Error(`Failed to start machine after ${attempts} attempts`);
     }
@@ -184,7 +184,7 @@ export class FlyProxy {
       );
     }
 
-    return agentName;
+    return [agentName, machineID];
   }
 
   public startMachine(
