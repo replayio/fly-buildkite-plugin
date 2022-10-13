@@ -150,7 +150,7 @@ function cleanupStep(
   return {
     label: ":broom: Clean up fly machines",
     commands: machines.map(
-      (id) => `fly machine delete -a ${applicationName} ${id}`
+      (id) => `fly machine remove -a ${applicationName} ${id}`
     ),
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
