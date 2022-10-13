@@ -28,11 +28,11 @@ type CreateMachinePayload = {
       cpus: number;
       memory_mb: number;
     };
+    mounts: {
+      volume: string;
+      path: string;
+    }[];
   };
-  mounts: {
-    volume: string;
-    path: string;
-  }[];
 };
 
 export class FlyProxy {
@@ -209,11 +209,11 @@ export class FlyProxy {
           cpus,
           memory_mb: memory,
         },
+        mounts: [],
       },
-      mounts: [],
     };
     if (volumeId) {
-      createMachinePayload.mounts.push({
+      createMachinePayload.config.mounts.push({
         volume: volumeId,
         path: "/mnt/data",
       });
