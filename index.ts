@@ -156,6 +156,7 @@ function cleanupStep(
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
     agents: "deploy=true",
     depends_on: dependencies,
+    allow_dependency_failure: true,
   };
 }
 
