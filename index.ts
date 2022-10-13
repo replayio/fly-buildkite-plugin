@@ -4,6 +4,7 @@ import { writeAll } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 import { applicationNameFromPipelineName } from "./fly/app.ts";
 import { Config, configFromEnv } from "./config.ts";
 import { FlyProxy } from "./fly/proxy.ts";
+import { assert } from "https://deno.land/std@0.145.0/_util/assert.ts";
 
 async function createSecrets(
   appName: string,
@@ -116,6 +117,8 @@ type Plugin = Record<string, any>;
 export type CommandStep = {
   command: string;
   plugins?: Plugin[];
+  agents?: string[];
+  key?: string;
 };
 
 async function createMachine(
@@ -123,9 +126,9 @@ async function createMachine(
   applicationName: string,
   command: CommandStep,
   config: Config
-) {
+): Promise<[CommandStep, string]> {
   const machineNamePrefix = applicationName + "-";
-  const agentName = await flyProxy.startMachine(
+  const [agentName, machineID] = await flyProxy.startMachine(
     machineNamePrefix,
     config.image,
     config.cpus,
@@ -133,7 +136,29 @@ async function createMachine(
     config.environment
   );
 
-  return { ...command, agents: [`${agentName}=true`] };
+  return [
+    { ...command, agents: [`${agentName}=true`], key: agentName },
+    machineID,
+  ];
+}
+
+function cleanupStep(
+  applicationName: string,
+  machines: string[],
+  dependencies: string[]
+) {
+  return [
+    {
+      label: ":broom: Clean up fly machines",
+      commands: machines.map(
+        (id) => `fly machine delete -a ${applicationName} ${id}`
+      ),
+      // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
+      // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
+      agents: "deploy=true",
+      depends_on: dependencies,
+    },
+  ];
 }
 
 async function main() {
@@ -168,30 +193,51 @@ async function main() {
   await flyProxy.waitForFlyProxyToStart();
   console.error("Fly proxy started");
 
+  const machines: string[] = [];
+  const stepKeys: string[] = [];
   try {
     let pipeline;
     if (config.matrix) {
-      const commandPromises = config.matrix.map((m) => {
+      const commandPromises = config.matrix.map(async (m) => {
         const command = config.command.replace("{{matrix}}", m);
         const commandConfig = {
           command,
         };
-        return createMachine(flyProxy, applicationName, commandConfig, config);
+        const [step, machineID] = await createMachine(
+          flyProxy,
+          applicationName,
+          commandConfig,
+          config
+        );
+        machines.push(machineID);
+        assert(step.key);
+        stepKeys.push(step.key);
+
+        return step;
       });
       const commands = await Promise.all(commandPromises);
-      pipeline = { steps: commands };
+      const steps = [
+        ...commands,
+        cleanupStep(applicationName, machines, stepKeys),
+      ];
+      pipeline = { steps };
     } else {
       const command = config.command;
       const commandConfig = {
         command,
+        key: "command-step",
       };
-      const step = await createMachine(
+      const [step, machineID] = await createMachine(
         flyProxy,
         applicationName,
         commandConfig,
         config
       );
-      pipeline = { steps: [step] };
+      machines.push(machineID);
+      assert(step.key);
+      stepKeys.push(step.key);
+      const steps = [step, cleanupStep(applicationName, machines, stepKeys)];
+      pipeline = { steps };
     }
 
     const pipelineString = JSON.stringify(pipeline);
