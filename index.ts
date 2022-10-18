@@ -126,32 +126,38 @@ async function createMachine(
   applicationName: string,
   command: CommandStep,
   config: Config
-): Promise<[CommandStep, string]> {
+): Promise<[CommandStep, string, string[]]> {
   const machineNamePrefix = applicationName + "-";
-  const [agentName, machineID] = await flyProxy.startMachine(
+  const [agentName, machineID, volumesCreated] = await flyProxy.startMachine(
     machineNamePrefix,
     config.image,
     config.cpus,
     config.memory,
+    config.storage,
     config.environment
   );
 
   return [
     { ...command, agents: [`${agentName}=true`], key: agentName },
     machineID,
+    volumesCreated,
   ];
 }
 
 function cleanupStep(
   applicationName: string,
   machines: string[],
-  dependencies: string[]
+  dependencies: string[],
+  volumes: string[]
 ) {
+  const volumeDeletes = volumes.map((v) => `fly volumes delete ${v} -y`);
+  const machineDeletes = machines.map(
+    (id) => `fly machine remove -a ${applicationName} ${id}`
+  );
+  const commands = machineDeletes.concat(volumeDeletes);
   return {
-    label: ":broom: Clean up fly machines",
-    commands: machines.map(
-      (id) => `fly machine remove -a ${applicationName} ${id}`
-    ),
+    label: ":broom: Clean up fly resources",
+    commands,
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
     agents: "deploy=true",
@@ -195,6 +201,7 @@ async function main() {
 
   const machines: string[] = [];
   const stepKeys: string[] = [];
+  const volumes: string[] = [];
   try {
     let pipeline;
     if (config.matrix) {
@@ -203,7 +210,7 @@ async function main() {
         const commandConfig = {
           command,
         };
-        const [step, machineID] = await createMachine(
+        const [step, machineID, volumesCreated] = await createMachine(
           flyProxy,
           applicationName,
           commandConfig,
@@ -212,13 +219,14 @@ async function main() {
         machines.push(machineID);
         assert(step.key);
         stepKeys.push(step.key);
+        volumes.push(...volumesCreated);
 
         return step;
       });
       const commands = await Promise.all(commandPromises);
       const steps = [
         ...commands,
-        cleanupStep(applicationName, machines, stepKeys),
+        cleanupStep(applicationName, machines, stepKeys, volumes),
       ];
       pipeline = { steps };
     } else {
@@ -227,7 +235,7 @@ async function main() {
         command,
         key: "command-step",
       };
-      const [step, machineID] = await createMachine(
+      const [step, machineID, volumesCreated] = await createMachine(
         flyProxy,
         applicationName,
         commandConfig,
@@ -236,7 +244,11 @@ async function main() {
       machines.push(machineID);
       assert(step.key);
       stepKeys.push(step.key);
-      const steps = [step, cleanupStep(applicationName, machines, stepKeys)];
+      volumes.push(...volumesCreated);
+      const steps = [
+        step,
+        cleanupStep(applicationName, machines, stepKeys, volumesCreated),
+      ];
       pipeline = { steps };
     }
 
