@@ -154,7 +154,7 @@ function cleanupStep(
   const machineDeletes = machines.map(
     (id) => `fly machine remove -a ${applicationName} ${id}`
   );
-  const commands = volumeDeletes.concat(machineDeletes);
+  const commands = machineDeletes.concat(volumeDeletes);
   return {
     label: ":broom: Clean up fly resources",
     commands,
