@@ -152,7 +152,7 @@ function cleanupStep(
 ) {
   const volumeDeletes = volumes.map((v) => `fly volumes delete ${v} -y`);
   const machineDeletes = machines.map(
-    (id) => `fly machine remove -a ${applicationName} ${id}`
+    (id) => `fly machine remove -a ${applicationName} ${id} --force`
   );
   const commands = machineDeletes.concat(volumeDeletes);
   return {
