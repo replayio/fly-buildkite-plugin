@@ -128,8 +128,7 @@ export class FlyProxy {
       "--size",
       sizeInGB.toString(),
       "--no-encryption",
-      "--require-unique-zone",
-      "false",
+      "--require-unique-zone=false",
     ];
     const p = Deno.run({ cmd, stdout: "piped", stderr: "inherit" });
     const [status, createVolumeOutput] = await Promise.all([
