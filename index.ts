@@ -166,6 +166,7 @@ function cleanupStep(
     commands,
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
+    soft_fail: true,
     agents: "deploy=true",
     depends_on: dependencies,
     allow_dependency_failure: true,
