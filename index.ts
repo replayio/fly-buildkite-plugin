@@ -119,7 +119,6 @@ export type CommandStep = {
   plugins?: Plugin[];
   agents?: string[];
   key?: string;
-  soft_fail?: boolean;
 };
 
 async function createMachine(
@@ -139,12 +138,7 @@ async function createMachine(
   );
 
   return [
-    {
-      ...command,
-      agents: [`${agentName}=true`],
-      key: agentName,
-      soft_fail: true,
-    },
+    { ...command, agents: [`${agentName}=true`], key: agentName },
     machineID,
     volumesCreated,
   ];
