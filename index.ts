@@ -163,6 +163,7 @@ function cleanupStep(
     agents: "deploy=true",
     depends_on: dependencies,
     allow_dependency_failure: true,
+    soft_fail: true,
     plugins: ["thedyrt/skip-checkout#v0.1.1"],
   };
 }
