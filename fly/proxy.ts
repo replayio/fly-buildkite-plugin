@@ -81,8 +81,23 @@ export class FlyProxy {
     );
   }
 
+  private async isFlyProxyRunning(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.address}/`);
+      return response.status === 404;
+    } catch (e) {
+      return false;
+    }
+  }
+
   public async waitForFlyProxyToStart() {
     if (this.flyProxyStarted) {
+      return;
+    }
+
+    if (await this.isFlyProxyRunning()) {
+      console.log("FlyProxy is already running");
+      this.flyProxyStarted = true;
       return;
     }
 
@@ -100,10 +115,6 @@ export class FlyProxy {
       } catch (e) {
         // show all running processes with ps
         console.error(`Failed to start fly proxy: ${e}`);
-        const ps = Deno.run({ cmd: ["ps", "-a"], stdout: "piped" });
-        const psOutput = await ps.output();
-        ps.close();
-        console.error(new TextDecoder().decode(psOutput));
       }
       attempts++;
       await delay(1500);
@@ -121,7 +132,6 @@ export class FlyProxy {
   }
 
   public stop() {
-    this.flyProxy.kill("SIGTERM");
     this.flyProxy.close();
   }
 
