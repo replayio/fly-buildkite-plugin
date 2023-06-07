@@ -103,7 +103,15 @@ export class FlyProxy {
         const ps = Deno.run({ cmd: ["ps", "-a"], stdout: "piped" });
         const psOutput = await ps.output();
         ps.close();
+
+        const lsof = Deno.run({
+          cmd: ["lsof", "-i", ":4280"],
+          stdout: "piped",
+        });
+        const lsofOutput = await lsof.output();
+        lsof.close();
         console.error(new TextDecoder().decode(psOutput));
+        console.error(new TextDecoder().decode(lsofOutput));
       }
       attempts++;
       await delay(1500);
