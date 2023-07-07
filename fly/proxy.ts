@@ -69,16 +69,8 @@ export class FlyProxy {
 
     copy(flyProxy.stdout, Deno.stdout);
     copy(flyProxy.stderr, Deno.stderr);
-    this.monitorProcess(flyProxy);
 
     return flyProxy;
-  }
-
-  private async monitorProcess(process: Deno.Process) {
-    const status = await process.status();
-    console.error(
-      `Process exited with status ${status.code}. Success: ${status.success}`
-    );
   }
 
   public async waitForFlyProxyToStart() {
@@ -98,12 +90,7 @@ export class FlyProxy {
           return;
         }
       } catch (e) {
-        // show all running processes with ps
         console.error(`Failed to start fly proxy: ${e}`);
-        const ps = Deno.run({ cmd: ["ps", "-a"], stdout: "piped" });
-        const psOutput = await ps.output();
-        ps.close();
-        console.error(new TextDecoder().decode(psOutput));
       }
       attempts++;
       await delay(1500);
