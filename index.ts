@@ -151,11 +151,11 @@ function cleanupStep(
   volumes: string[]
 ) {
   const volumeDeletes = volumes.map((v) => `fly volumes delete ${v} -y`);
-  const wait10Seconds = `sleep 10`;
+  const wait2Mins = `sleep 120`;
   const machineDeletes = machines.map(
     (id) => `fly machine remove -a ${applicationName} ${id} --force`
   );
-  const commands = machineDeletes.concat(wait10Seconds).concat(volumeDeletes);
+  const commands = machineDeletes.concat(wait2Mins).concat(volumeDeletes);
   return {
     label: ":broom: Clean up fly resources",
     commands,
