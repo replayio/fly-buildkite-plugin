@@ -55,13 +55,12 @@ export class FlyProxy {
     const flyProxy = Deno.run({
       cmd: [
         "fly",
-        "--json",
+        "machine",
+        "api-proxy",
         "--access-token",
         this.apiToken,
         "--org",
         this.organization,
-        "machine",
-        "api-proxy",
       ],
       stdout: "piped",
       stderr: "piped",
