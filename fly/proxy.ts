@@ -115,9 +115,6 @@ export class FlyProxy {
   private async createVolume(region: string, sizeInGB: number) {
     const cmd = [
       "fly",
-      "--json",
-      "--access-token",
-      this.apiToken,
       "-a",
       this.applicationName,
       "volumes",
@@ -129,6 +126,9 @@ export class FlyProxy {
       sizeInGB.toString(),
       "--no-encryption",
       "--require-unique-zone=false",
+      "--json",
+      "--access-token",
+      this.apiToken,
     ];
     const p = Deno.run({ cmd, stdout: "piped", stderr: "inherit" });
     const [status, createVolumeOutput] = await Promise.all([

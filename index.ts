@@ -67,7 +67,7 @@ async function createApplicationIfNotExists(
   organization: string,
   applicationName: string
 ) {
-  const cmd = ["fly", "--json", "--access-token", flyApiToken, "apps", "list"];
+  const cmd = ["fly", "apps", "list", "--json", "--access-token", flyApiToken];
   console.error(`Checking list of apps`, cmd.join(" "));
   const p = Deno.run({
     cmd,
@@ -92,15 +92,15 @@ async function createApplicationIfNotExists(
     const p = Deno.run({
       cmd: [
         "fly",
-        "--json",
-        "--access-token",
-        flyApiToken,
         "apps",
         "create",
         "--name",
         applicationName,
         "--org",
         organization,
+        "--json",
+        "--access-token",
+        flyApiToken,
       ],
     });
 
