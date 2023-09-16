@@ -128,6 +128,7 @@ export class FlyProxy {
       "--json",
       "--access-token",
       this.apiToken,
+      "--yes",
     ];
     const p = Deno.run({ cmd, stdout: "piped", stderr: "inherit" });
     const [status, createVolumeOutput] = await Promise.all([
