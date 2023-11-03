@@ -59,5 +59,24 @@ Deno.test("createSecrets", () => {
     }
   );
 
+  Deno.test(
+    "createSecrets should secrets represented as a Record",
+    async () => {
+      Deno.env.set("SECRET_KEY_ON_BOX", "SECRET_VALUE");
+      mf.mock("POST@/graphql", () => {
+        return new Response("OK", {
+          status: 200,
+        });
+      });
+
+      await createSecrets("testApp", "testToken", {
+        SECRET_KEY_IN_FLY: "SECRET_KEY_ON_BOX",
+      });
+
+      Deno.env.delete("SECRET_KEY");
+      mf.reset();
+    }
+  );
+
   mf.uninstall();
 });

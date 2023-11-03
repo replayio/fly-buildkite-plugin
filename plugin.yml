@@ -11,7 +11,7 @@ configuration:
     organization:
       type: string
     secrets:
-      type: array
+      type: [array, object]
     env:
       type: object
     cpus:
