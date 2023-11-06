@@ -3,7 +3,7 @@ VERSION 0.6
 FROM denoland/deno:alpine-1.23.1
 
 compile:
-  COPY index.ts config.ts .
+  COPY index.ts config.ts createSecrets.ts .
   COPY fly fly
   ARG TARGET_PLATFORM=x86_64-unknown-linux-gnu
   RUN deno compile --target ${TARGET_PLATFORM} -o fly-buildkite-plugin-${TARGET_PLATFORM}  --allow-env --allow-run --allow-net index.ts
@@ -15,7 +15,7 @@ compile-all:
   BUILD --build-arg TARGET_PLATFORM=aarch64-apple-darwin +compile
 
 test:
-  COPY index.ts config.ts .
+  COPY index.ts config.ts createSecrets.ts createSecrets.test.ts .
   COPY fly fly
   RUN deno test
 
