@@ -36,18 +36,20 @@ export async function createSecrets(
       };
     }, {});
   } else {
-    // otherwise, if it's a map convert it in to a map of key to the value contained in the environment variable with that value
-    secretsMap = Object.entries(secrets).reduce((acc, [key, value]) => {
-      const envValue = Deno.env.get(value);
-      if (!envValue) {
-        throw new Error(`Secret ${value} is not set in environment`);
-      }
+    secretsMap = Object.entries(secrets).reduce(
+      (acc, [secretName, envVarName]) => {
+        const envValue = Deno.env.get(envVarName);
+        if (!envValue) {
+          throw new Error(`Environment variable ${envVarName} is not set`);
+        }
 
-      return {
-        ...acc,
-        [key]: envValue,
-      };
-    }, {});
+        return {
+          ...acc,
+          [secretName]: envValue,
+        };
+      },
+      {}
+    );
   }
 
   const variables = {
