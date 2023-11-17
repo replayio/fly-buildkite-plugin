@@ -71,13 +71,13 @@ export type CommandStep = {
 };
 
 async function createMachine(
-  flyProxy: Machines,
+  machinesApi: Machines,
   applicationName: string,
   command: CommandStep,
   config: Config
 ): Promise<[CommandStep, string, string[]]> {
   const machineNamePrefix = applicationName + "-";
-  const [agentName, machineID, volumesCreated] = await flyProxy.startMachine(
+  const [agentName, machineID, volumesCreated] = await machinesApi.startMachine(
     machineNamePrefix,
     config.image,
     config.cpus,
@@ -137,7 +137,7 @@ async function main() {
   console.error("Creating secrets");
   await createSecrets(applicationName, config.api_token, config.secrets);
 
-  const flyProxy = new Machines(config.api_token, applicationName);
+  const machinesApi = new Machines(config.api_token, applicationName);
 
   const machines: string[] = [];
   const stepKeys: string[] = [];
@@ -151,7 +151,7 @@ async function main() {
           command,
         };
         const [step, machineID, volumesCreated] = await createMachine(
-          flyProxy,
+          machinesApi,
           applicationName,
           commandConfig,
           config
@@ -176,7 +176,7 @@ async function main() {
         key: "command-step",
       };
       const [step, machineID, volumesCreated] = await createMachine(
-        flyProxy,
+        machinesApi,
         applicationName,
         commandConfig,
         config
