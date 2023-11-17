@@ -5,7 +5,6 @@
  */
 
 import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
-import { copy } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
 const REGIONS = ["dfw", "iad", "lax", "mia", "ord", "sea", "sjc"];
 const MAX_ATTEMPTS = 3;
@@ -35,80 +34,14 @@ type CreateMachinePayload = {
   };
 };
 
-export class FlyProxy {
+export class Machines {
   private readonly apiToken: string;
-  private readonly organization: string;
   private readonly applicationName: string;
-  private readonly flyProxy: Deno.Process;
-  private readonly address = "http://localhost:4280";
+  private readonly address = "https://api.machines.dev";
 
-  private flyProxyStarted = false;
-
-  constructor(apiToken: string, organization: string, applicationName: string) {
+  constructor(apiToken: string, applicationName: string) {
     this.apiToken = apiToken;
-    this.organization = organization;
     this.applicationName = applicationName;
-    this.flyProxy = this.startFlyProxy();
-  }
-
-  private startFlyProxy() {
-    const flyProxy = Deno.run({
-      cmd: [
-        "fly",
-        "machine",
-        "api-proxy",
-        "--access-token",
-        this.apiToken,
-        "--org",
-        this.organization,
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    copy(flyProxy.stdout, Deno.stdout);
-    copy(flyProxy.stderr, Deno.stderr);
-
-    return flyProxy;
-  }
-
-  public async waitForFlyProxyToStart() {
-    if (this.flyProxyStarted) {
-      return;
-    }
-
-    // wait for GET http://localhost:4280/ to return a 404 response
-    const maxAttempts = 3;
-    let attempts = 0;
-    while (attempts < maxAttempts) {
-      try {
-        const response = await fetch(`${this.address}/`);
-        if (response.status === 404) {
-          this.flyProxyStarted = true;
-          console.error("FlyProxy started");
-          return;
-        }
-      } catch (e) {
-        console.error(`Failed to start fly proxy: ${e}`);
-      }
-      attempts++;
-      await delay(1500);
-
-      console.error(`Waiting for fly proxy to start...`);
-
-      if (attempts === maxAttempts) {
-        throw new Error(
-          `Fly proxy failed to start after ${maxAttempts} attempts`
-        );
-      }
-
-      console.error(`Attempt ${attempts}`);
-    }
-  }
-
-  public stop() {
-    this.flyProxy.kill("SIGTERM");
-    this.flyProxy.close();
   }
 
   private async createVolume(region: string, sizeInGB: number) {
@@ -163,8 +96,6 @@ export class FlyProxy {
     if (attempts > MAX_ATTEMPTS) {
       throw new Error(`Failed to start machine after ${attempts} attempts`);
     }
-
-    await this.waitForFlyProxyToStart();
 
     const agentName = `${namePrefix}-${crypto.randomUUID()}`;
 
@@ -300,7 +231,6 @@ export class FlyProxy {
   }
 
   private async waitForMachine(machineID: string) {
-    await this.waitForFlyProxyToStart();
     // Each API call times out after 60 seconds. If the machine is not ready in
     // 180 seconds, or three calls to this API, throw an exception
     const maxAttempts = 3;

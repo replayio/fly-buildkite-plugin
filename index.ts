@@ -1,10 +1,9 @@
-import { delay } from "https://deno.land/std@0.144.0/async/delay.ts";
 import { writeAll } from "https://deno.land/std@0.145.0/streams/conversion.ts";
 
 import { applicationNameFromPipelineName } from "./fly/app.ts";
 import { Config, configFromEnv } from "./config.ts";
 
-import { FlyProxy } from "./fly/proxy.ts";
+import { Machines } from "./fly/machines.ts";
 import { assert } from "https://deno.land/std@0.145.0/_util/assert.ts";
 import { createSecrets } from "./createSecrets.ts";
 
@@ -72,7 +71,7 @@ export type CommandStep = {
 };
 
 async function createMachine(
-  flyProxy: FlyProxy,
+  flyProxy: Machines,
   applicationName: string,
   command: CommandStep,
   config: Config
@@ -138,17 +137,7 @@ async function main() {
   console.error("Creating secrets");
   await createSecrets(applicationName, config.api_token, config.secrets);
 
-  // start fly proxy
-  console.error("Starting fly proxy");
-  const flyProxy = new FlyProxy(
-    config.api_token,
-    config.organization,
-    applicationName
-  );
-
-  await delay(1000);
-  await flyProxy.waitForFlyProxyToStart();
-  console.error("Fly proxy started");
+  const flyProxy = new Machines(config.api_token, applicationName);
 
   const machines: string[] = [];
   const stepKeys: string[] = [];
@@ -224,8 +213,6 @@ async function main() {
   } catch (e) {
     console.error(e);
     Deno.exit(1);
-  } finally {
-    flyProxy.stop();
   }
 }
 
