@@ -72,9 +72,12 @@ Deno.test("createSecrets", async (t) => {
         const text = await req.text();
         const body = JSON.parse(text);
         assertEquals(body.variables.appId, "testApp");
-        assertEquals(body.variables.secrets, {
-          SECRET_KEY_IN_FLY: "SECRET_VALUE",
-        });
+        assertEquals(body.variables.secrets, [
+          {
+            key: "SECRET_KEY_IN_FLY",
+            value: "SECRET_VALUE",
+          },
+        ]);
 
         return new Response("OK", {
           status: 200,

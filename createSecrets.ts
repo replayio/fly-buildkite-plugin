@@ -52,9 +52,14 @@ export async function createSecrets(
     );
   }
 
+  const secretsArray = Object.entries(secretsMap).map(([key, value]) => ({
+    key,
+    value,
+  }));
+
   const variables = {
     appId: appName,
-    secrets: secretsMap,
+    secrets: secretsArray,
   };
 
   const result = await fetch("https://api.fly.io/graphql", {
