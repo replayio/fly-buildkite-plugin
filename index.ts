@@ -11,6 +11,42 @@ type AppList = Array<{
   Name: string;
 }>;
 
+async function runWithRetry(
+  cmd: string[],
+  retryCount: number
+): Promise<[Deno.ProcessStatus, Uint8Array]> {
+  let attempt = 0;
+  while (attempt < retryCount) {
+    try {
+      const p = Deno.run({
+        cmd,
+        stdout: "piped",
+        stderr: "inherit",
+      });
+
+      const [status, output] = await Promise.all([p.status(), p.output()]);
+      p.close();
+      if (status.success) {
+        return [status, output];
+      }
+    } catch (error) {
+      console.error(`Failed to run command: ${cmd.join(" ")}`);
+      throw error;
+    }
+
+    attempt++;
+    // sleep for 1 second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  console.error(
+    `Failed to run command after ${retryCount} attempts: ${cmd.join(" ")}`
+  );
+  throw new Error(
+    `Failed to run command after ${retryCount} attempts: ${cmd.join(" ")}`
+  );
+}
+
 async function createApplicationIfNotExists(
   flyApiToken: string,
   organization: string,
@@ -18,15 +54,9 @@ async function createApplicationIfNotExists(
 ) {
   const cmd = ["fly", "apps", "list", "--json", "--access-token", flyApiToken];
   console.error(`Checking list of apps`, cmd.join(" "));
-  const p = Deno.run({
-    cmd,
-    stdout: "piped",
-    stderr: "inherit",
-  });
 
-  console.error("Getting status and output");
-  const [status, listOutput] = await Promise.all([p.status(), p.output()]);
-  p.close();
+  const [status, listOutput] = await runWithRetry(cmd, 3);
+
   if (!status.success) {
     console.error("Failed to get list of fly apps");
     throw new Error("Failed to get list of fly apps");
