@@ -17,7 +17,7 @@ compile-all:
 test:
   COPY index.ts config.ts createSecrets.ts createSecrets.test.ts .
   COPY fly fly
-  RUN deno test
+  RUN deno test --allow-env
 
 # TODO(dmiller): try to imitate https://github.com/earthly/earthly/blob/main/release/Earthfile#L66 to release on GitHub
 # for now let's just do it by hand
