@@ -90,11 +90,17 @@ async function createApplicationIfNotExists(
   }
 }
 
+// The Record<string,any> form here isn't as strict as I'd like - it should be an object
+// with a single key, with a value also an object of any number of k/v.  I have no idea how
+// to express that in typescript.
 // deno-lint-ignore no-explicit-any
-type Plugin = Record<string, any>;
+type Plugin = string | Record<string, any>;
 
 export type CommandStep = {
-  command: string;
+  label?: string;
+  command: string | string[];
+  depends_on?: string | string[];
+  allow_dependency_failure?: boolean;
   plugins?: Plugin[];
   agents?: string[];
   key?: string;
@@ -105,7 +111,7 @@ async function createMachine(
   applicationName: string,
   command: CommandStep,
   config: Config
-): Promise<[CommandStep, string, string[]]> {
+): Promise<[CommandStep & { key: string }, string, string[]]> {
   const machineNamePrefix = applicationName + "-";
   const [agentName, machineID, volumesCreated] = await machinesApi.startMachine(
     machineNamePrefix,
@@ -128,7 +134,7 @@ function cleanupStep(
   machines: string[],
   dependencies: string[],
   volumes: string[]
-) {
+): CommandStep {
   const volumeDeletes = volumes.map((v) => `fly volumes delete ${v} -y`);
   const wait2Mins = `sleep 120`;
   const machineDeletes = machines.map(
@@ -137,13 +143,24 @@ function cleanupStep(
   const commands = machineDeletes.concat(wait2Mins).concat(volumeDeletes);
   return {
     label: ":broom: Clean up fly resources",
-    commands,
+    key: "cleanup-step",
+    command: commands,
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
-    agents: "deploy=true",
+    agents: ["deploy=true"],
     depends_on: dependencies,
     allow_dependency_failure: true,
-    plugins: ["thedyrt/skip-checkout#v0.1.1"],
+    plugins: [
+      "thedyrt/skip-checkout#v0.1.1",
+      {
+        "seek-oss/aws-sm#v2.3.1": {
+          region: "us-east-2",
+          env: {
+            FLY_API_TOKEN: "prod/fly-api-token"
+          }
+        },
+      }
+    ],
   };
 }
 
@@ -193,9 +210,9 @@ async function main() {
 
         return step;
       });
-      const commands = await Promise.all(commandPromises);
+      const commandSteps = await Promise.all(commandPromises);
       const steps = [
-        ...commands,
+        ...commandSteps,
         cleanupStep(applicationName, machines, stepKeys, volumes),
       ];
       pipeline = { steps };
