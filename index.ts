@@ -130,6 +130,7 @@ async function createMachine(
 }
 
 function cleanupStep(
+  stepSuffix: string,
   applicationName: string,
   machines: string[],
   dependencies: string[],
@@ -143,7 +144,7 @@ function cleanupStep(
   const commands = machineDeletes.concat(wait2Mins).concat(volumeDeletes);
   return {
     label: ":broom: Clean up fly resources",
-    key: "cleanup-step",
+    key: `cleanup-step-${stepSuffix}`,
     command: commands,
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
@@ -156,10 +157,10 @@ function cleanupStep(
         "seek-oss/aws-sm#v2.3.1": {
           region: "us-east-2",
           env: {
-            FLY_API_TOKEN: "prod/fly-api-token"
-          }
+            FLY_API_TOKEN: "prod/fly-api-token",
+          },
         },
-      }
+      },
     ],
   };
 }
@@ -172,6 +173,11 @@ async function main() {
     throw new Error("BUILDKITE_PIPELINE_SLUG is not set");
   }
   const applicationName = applicationNameFromPipelineName(pipelineName);
+
+  const stepID = Deno.env.get("BUILDKITE_STEP_ID");
+  if (!stepID) {
+    throw new Error("BUILDKITE_STEP_ID is not set");
+  }
 
   // create application if it doesn't exist
   console.error("Checking if application exists");
@@ -213,7 +219,7 @@ async function main() {
       const commandSteps = await Promise.all(commandPromises);
       const steps = [
         ...commandSteps,
-        cleanupStep(applicationName, machines, stepKeys, volumes),
+        cleanupStep(stepID, applicationName, machines, stepKeys, volumes),
       ];
       pipeline = { steps };
     } else {
@@ -234,7 +240,13 @@ async function main() {
       volumes.push(...volumesCreated);
       const steps = [
         step,
-        cleanupStep(applicationName, machines, stepKeys, volumesCreated),
+        cleanupStep(
+          stepID,
+          applicationName,
+          machines,
+          stepKeys,
+          volumesCreated
+        ),
       ];
       pipeline = { steps };
     }
