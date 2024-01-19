@@ -143,7 +143,6 @@ function cleanupStep(
   const commands = machineDeletes.concat(wait2Mins).concat(volumeDeletes);
   return {
     label: ":broom: Clean up fly resources",
-    key: "cleanup-step",
     command: commands,
     // TODO(dmiller): instead of hardcoding this, maybe grab the buildkite agent tags from
     // [BUILDKITE_AGENT_META_DATA_*](https://buildkite.com/docs/pipelines/environment-variables#BUILDKITE_AGENT_META_DATA_)
@@ -156,10 +155,10 @@ function cleanupStep(
         "seek-oss/aws-sm#v2.3.1": {
           region: "us-east-2",
           env: {
-            FLY_API_TOKEN: "prod/fly-api-token"
-          }
+            FLY_API_TOKEN: "prod/fly-api-token",
+          },
         },
-      }
+      },
     ],
   };
 }
