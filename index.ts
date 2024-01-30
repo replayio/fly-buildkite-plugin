@@ -133,8 +133,6 @@ async function createMachine(
             region: "us-east-2",
             env: {
               BUILDEVENT_APIKEY: "honeycomb-api-key",
-              BUILDEVENT_BUILDKITE_API_TOKEN:
-                "buildkite-api-token-honeycomb-build-events",
             },
           },
         },
@@ -176,8 +174,6 @@ function cleanupStep(
           env: {
             FLY_API_TOKEN: "prod/fly-api-token",
             BUILDEVENT_APIKEY: "honeycomb-api-key",
-            BUILDEVENT_BUILDKITE_API_TOKEN:
-              "buildkite-api-token-honeycomb-build-events",
           },
         },
       },
