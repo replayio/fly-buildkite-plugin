@@ -94,7 +94,7 @@ async function createApplicationIfNotExists(
 // with a single key, with a value also an object of any number of k/v.  I have no idea how
 // to express that in typescript.
 // deno-lint-ignore no-explicit-any
-type Plugin = string | Record<string, any>;
+type Plugin = string | Record<string, Record<string, any>>;
 
 export type CommandStep = {
   label?: string;
@@ -136,9 +136,7 @@ async function createMachine(
             },
           },
         },
-        {
-          "replayio/buildevents#adb8a05": "~",
-        },
+        "replayio/buildevents#adb8a05",
       ],
     },
     machineID,
@@ -177,9 +175,7 @@ function cleanupStep(
           },
         },
       },
-      {
-        "replayio/buildevents#adb8a05": "~",
-      },
+      "replayio/buildevents#adb8a05",
     ],
   };
 }
