@@ -123,7 +123,24 @@ async function createMachine(
   );
 
   return [
-    { ...command, agents: [`${agentName}=true`], key: agentName },
+    {
+      ...command,
+      agents: [`${agentName}=true`],
+      key: agentName,
+      plugins: [
+        {
+          "seek-oss/aws-sm#v2.3.1": {
+            region: "us-east-2",
+            env: {
+              BUILDEVENT_APIKEY: "honeycomb-api-key",
+            },
+          },
+        },
+        {
+          "replayio/buildevents#adb8a05": "~",
+        },
+      ],
+    },
     machineID,
     volumesCreated,
   ];
@@ -156,8 +173,12 @@ function cleanupStep(
           region: "us-east-2",
           env: {
             FLY_API_TOKEN: "prod/fly-api-token",
+            BUILDEVENT_APIKEY: "honeycomb-api-key",
           },
         },
+      },
+      {
+        "replayio/buildevents#adb8a05": "~",
       },
     ],
   };
