@@ -136,7 +136,7 @@ async function createMachine(
             },
           },
         },
-        "replayio/buildevents#adb8a05",
+        "replayio/buildevents#2810143",
       ],
     },
     machineID,
@@ -175,7 +175,7 @@ function cleanupStep(
           },
         },
       },
-      "replayio/buildevents#adb8a05",
+      "replayio/buildevents#2810143",
     ],
   };
 }
