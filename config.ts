@@ -6,6 +6,7 @@ export type Config = {
   secrets: Array<string> | Record<string, string>;
   environment: Record<string, string>;
   cpus: number;
+  cpu_kind: string;
   memory: number;
   storage: number | null;
   matrix: Array<string> | null;
@@ -36,6 +37,7 @@ export function configFromEnv(): Config {
     secrets: pluginConfig.secrets || [],
     environment: pluginConfig.env || {},
     cpus: pluginConfig.cpus || 1,
+    cpu_kind: pluginConfig.cpu_kind || "shared",
     memory: pluginConfig.memory || 1024,
     storage: pluginConfig.storage || null,
     matrix: pluginConfig.matrix || null,

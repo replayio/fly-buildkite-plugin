@@ -23,7 +23,7 @@ type CreateMachinePayload = {
     image: string;
     env: Record<string, string>;
     guest: {
-      cpu_kind: "shared";
+      cpu_kind: string;
       cpus: number;
       memory_mb: number;
     };
@@ -37,11 +37,13 @@ type CreateMachinePayload = {
 export class Machines {
   private readonly apiToken: string;
   private readonly applicationName: string;
+  private readonly cpuKind: string;
   private readonly address = "https://api.machines.dev";
 
-  constructor(apiToken: string, applicationName: string) {
+  constructor(apiToken: string, applicationName: string, cpuKind = "shared") {
     this.apiToken = apiToken;
     this.applicationName = applicationName;
+    this.cpuKind = cpuKind;
   }
 
   private async createVolume(region: string, sizeInGB: number) {
@@ -136,8 +138,9 @@ export class Machines {
           ...env,
         },
         guest: {
-          // As of 22-06-22 machines created via the API can only used shared CPUs, not dedicated ones
-          cpu_kind: "shared",
+          // cpu_kind defaults to "shared"; set to "performance" for dedicated
+          // (unthrottled) cores. shared caps at 8 cpus, performance goes to 16.
+          cpu_kind: this.cpuKind,
           cpus,
           memory_mb: memory,
         },

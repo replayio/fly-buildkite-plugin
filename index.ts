@@ -202,7 +202,11 @@ async function main() {
   console.error("Creating secrets");
   await createSecrets(applicationName, config.api_token, config.secrets);
 
-  const machinesApi = new Machines(config.api_token, applicationName);
+  const machinesApi = new Machines(
+    config.api_token,
+    applicationName,
+    config.cpu_kind
+  );
 
   const machines: string[] = [];
   const stepKeys: string[] = [];

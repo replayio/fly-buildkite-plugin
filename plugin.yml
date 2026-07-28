@@ -16,6 +16,8 @@ configuration:
       type: object
     cpus:
       type: number
+    cpu_kind:
+      type: string
     memory:
       type: number
     storage:
